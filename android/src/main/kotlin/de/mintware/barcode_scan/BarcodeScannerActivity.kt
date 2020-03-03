@@ -5,16 +5,18 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import android.view.MenuItem
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.zxing.Result
+import de.mintware.barcodescan.R
 import me.dm7.barcodescanner.core.IViewFinder
 import me.dm7.barcodescanner.zxing.ZXingScannerView
-import de.mintware.barcodescan.R
 
 
 class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
@@ -30,9 +32,21 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
 
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> finish()
+            else -> {
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+        actionBar?.setHomeAsUpIndicator(R.mipmap.ic_back)
 
         scannerView = object : ZXingScannerView(this) {
             override fun createViewFinderView(context: Context?): IViewFinder? {
