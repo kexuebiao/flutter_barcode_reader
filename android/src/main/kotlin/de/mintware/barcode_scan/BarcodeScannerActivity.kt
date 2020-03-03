@@ -2,20 +2,27 @@ package de.mintware.barcode_scan
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.view.Menu
-import android.view.MenuItem
 import com.google.zxing.Result
+import me.dm7.barcodescanner.core.IViewFinder
 import me.dm7.barcodescanner.zxing.ZXingScannerView
+import de.mintware.barcodescan.R
 
 
 class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
 
     lateinit var scannerView: me.dm7.barcodescanner.zxing.ZXingScannerView
+    lateinit var scanFrame: FrameLayout
+    lateinit var btnFlash: ImageView
+
 
     companion object {
         val REQUEST_TAKE_PHOTO_CAMERA_PERMISSION = 100
@@ -25,34 +32,27 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        title = ""
-        scannerView = ZXingScannerView(this)
+        setContentView(R.layout.activity_main)
+
+        scannerView = object : ZXingScannerView(this) {
+            override fun createViewFinderView(context: Context?): IViewFinder? {
+                return CustomViewFinderView(context)
+            }
+        }
+
+        scanFrame = findViewById(R.id.scanFrame)
+        scanFrame.addView(scannerView)
+
+        btnFlash = findViewById(R.id.btnFlash)
+        //闪光灯
+        btnFlash.setOnClickListener {
+            btnFlash.isSelected = !btnFlash.isSelected
+            scannerView.flash = btnFlash.isSelected;
+        }
         scannerView.setAutoFocus(true)
         // this paramter will make your HUAWEI phone works great!
         scannerView.setAspectTolerance(0.5f)
-        setContentView(scannerView)
-    }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        if (scannerView.flash) {
-            val item = menu.add(0,
-                    TOGGLE_FLASH, 0, "Flash Off")
-            item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        } else {
-            val item = menu.add(0,
-                    TOGGLE_FLASH, 0, "Flash On")
-            item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        }
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == TOGGLE_FLASH) {
-            scannerView.flash = !scannerView.flash
-            this.invalidateOptionsMenu()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {
@@ -86,16 +86,26 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
     private fun requestCameraAccessIfNecessary(): Boolean {
         val array = arrayOf(Manifest.permission.CAMERA)
         if (ContextCompat
-                .checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        .checkSelfPermission(
+                                this,
+                                Manifest.permission.CAMERA
+                        ) != PackageManager.PERMISSION_GRANTED
+        ) {
 
-            ActivityCompat.requestPermissions(this, array,
-                    REQUEST_TAKE_PHOTO_CAMERA_PERMISSION)
+            ActivityCompat.requestPermissions(
+                    this, array,
+                    REQUEST_TAKE_PHOTO_CAMERA_PERMISSION
+            )
             return true
         }
         return false
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>,grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<out String>,
+            grantResults: IntArray
+    ) {
         when (requestCode) {
             REQUEST_TAKE_PHOTO_CAMERA_PERMISSION -> {
                 if (PermissionUtil.verifyPermissions(grantResults)) {
