@@ -5,7 +5,7 @@
 
   <application>
     <activity
-        android:label="添加设备"
+        android:label="二维码扫描"
         android:name="de.mintware.barcode_scan.BarcodeScannerActivity" />
   </application>
 </manifest>
